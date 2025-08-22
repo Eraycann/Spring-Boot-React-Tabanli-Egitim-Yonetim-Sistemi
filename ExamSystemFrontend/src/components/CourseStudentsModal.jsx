@@ -37,6 +37,7 @@ import { useAuth } from '../hooks/useAuth';
 
 const CourseStudentsModal = ({ open, onClose, courseId, courseName }) => {
   const { user } = useAuth();
+  
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -225,7 +226,7 @@ const CourseStudentsModal = ({ open, onClose, courseId, courseName }) => {
                   Kayıtlı Öğrenciler
                 </Typography>
                 <Box className="flex items-center gap-3">
-                  {user?.role === 'ADMIN' || user?.role === 'TEACHER' ? (
+                  {user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_TEACHER' ? (
                     <>
                       <Button
                         variant="contained"
@@ -456,7 +457,7 @@ const CourseStudentsModal = ({ open, onClose, courseId, courseName }) => {
                       </Box>
                       
                       {/* Remove Button */}
-                      {user?.role === 'ADMIN' || user?.role === 'TEACHER' ? (
+                      {user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_TEACHER' ? (
                         <IconButton
                           size="small"
                           onClick={() => handleRemoveStudent(student)}
@@ -540,8 +541,8 @@ const CourseStudentsModal = ({ open, onClose, courseId, courseName }) => {
         </Button>
       </DialogActions>
 
-      {/* Student Enrollment Modal */}
-      {user?.role === 'ADMIN' || user?.role === 'TEACHER' ? (
+             {/* Student Enrollment Modal */}
+       {user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_TEACHER' ? (
         <StudentEnrollmentModal
           open={studentEnrollmentModalOpen}
           onClose={() => setStudentEnrollmentModalOpen(false)}
@@ -551,8 +552,8 @@ const CourseStudentsModal = ({ open, onClose, courseId, courseName }) => {
         />
       ) : null}
 
-      {/* Student Remove Modal */}
-      {user?.role === 'ADMIN' || user?.role === 'TEACHER' ? (
+             {/* Student Remove Modal */}
+       {user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_TEACHER' ? (
         <StudentRemoveModal
           open={studentRemoveModalOpen}
           onClose={() => setStudentRemoveModalOpen(false)}

@@ -14,6 +14,7 @@ import ExamDetailPage from './pages/ExamDetailPage';
 import QuestionDetailPage from './pages/QuestionDetailPage';
 import ExamSubmissionsPage from './pages/ExamSubmissionsPage';
 import ExamSubmissionDetailPage from './pages/ExamSubmissionDetailPage';
+import StudentAnswersPage from './pages/StudentAnswersPage';
 import TakeExamPage from './pages/TakeExamPage';
 import Layout from './components/layout/Layout';
 import { useAuthContext } from './contexts/AuthContext';
@@ -202,6 +203,16 @@ const AppContent = () => {
             <ProtectedRoute>
               <Layout>
                 <ExamSubmissionDetailPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student-answers/:examId"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <StudentAnswersPage />
               </Layout>
             </ProtectedRoute>
           }

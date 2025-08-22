@@ -52,7 +52,8 @@ import {
   Add as AddIcon,
   Close as CloseIcon,
   Visibility as VisibilityIcon,
-  Start as StartIcon
+  Start as StartIcon,
+  Assignment as AssignmentIcon
 } from '@mui/icons-material';
 import { apiService } from '../utils/apiService';
 import { useAuth } from '../hooks/useAuth';
@@ -68,6 +69,9 @@ const ExamDetailPage = () => {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [hasActiveSubmission, setHasActiveSubmission] = useState(false);
+  const [activeSubmissionId, setActiveSubmissionId] = useState(null);
+  const [checkingSubmission, setCheckingSubmission] = useState(false);
 
   // Modal states
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -129,10 +133,39 @@ const ExamDetailPage = () => {
       
       const response = await apiService.get(`/exams/${examId}`);
       setExam(response);
+      
+      // Check if student has an active submission for this exam
+      if (user?.role === 'ROLE_STUDENT') {
+        await checkActiveSubmission(examId);
+      }
     } catch (err) {
       setError(err.message || 'Sınav detayları yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkActiveSubmission = async (examId) => {
+    try {
+      // Check if student has an active submission for this exam
+      const params = new URLSearchParams({
+        examId: examId,
+        page: '0',
+        size: '1'
+      });
+      
+      const response = await apiService.get(`/exam-submissions?${params.toString()}`);
+      
+      if (response.content && response.content.length > 0) {
+        const submission = response.content[0];
+        // Check if submission is not completed (submittedAt is null)
+        if (!submission.submittedAt) {
+          setHasActiveSubmission(true);
+          setActiveSubmissionId(submission.id);
+        }
+      }
+    } catch (err) {
+      console.error('Aktif sınav kontrolü yapılırken hata:', err);
     }
   };
 
@@ -316,6 +349,8 @@ const ExamDetailPage = () => {
     if (!exam?.id) return;
 
     try {
+      setCheckingSubmission(true);
+      
       // Create exam submission
       const submissionData = {
         examId: exam.id
@@ -334,7 +369,33 @@ const ExamDetailPage = () => {
       
     } catch (err) {
       console.error('Sınav başlatılırken hata:', err);
-      // You might want to show an error message to the user
+      
+      // Check specific error types
+      if (err.message && err.message.includes('aktif bir girişiniz var')) {
+        setError('Bu sınava zaten başladınız. Aktif sınavınızı tamamlamanız gerekiyor.');
+        // Refresh active submission check
+        await checkActiveSubmission(exam.id);
+      } else if (err.message && err.message.includes('zaten tamamlanmış')) {
+        setError('Bu sınavı zaten tamamladınız. Aynı sınava tekrar giremezsiniz.');
+      } else if (err.message && err.message.includes('kayıtlı değil')) {
+        setError('Bu sınavın bulunduğu derse kayıtlı değilsiniz. Sınava girmek için önce derse kayıt olmanız gerekiyor.');
+      } else {
+        setError('Sınav başlatılırken bir hata oluştu. Lütfen tekrar deneyin.');
+      }
+    } finally {
+      setCheckingSubmission(false);
+    }
+  };
+
+  const handleContinueExam = () => {
+    if (activeSubmissionId) {
+      navigate(`/take-exam/${exam.id}`, { 
+        state: { 
+          submissionId: activeSubmissionId,
+          examName: exam.name,
+          durationInMinutes: exam.durationInMinutes
+        }
+      });
     }
   };
 
@@ -932,32 +993,119 @@ const ExamDetailPage = () => {
 
                 {/* Student Actions */}
                 {user?.role === 'ROLE_STUDENT' && exam.active && (
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<StartIcon />}
-                    onClick={handleStartExam}
-                    sx={{
-                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                      borderRadius: '16px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      py: 2,
-                      fontSize: '1rem',
-                      boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                        boxShadow: '0 6px 20px rgba(139, 92, 246, 0.4)',
-                        transform: 'translateY(-2px)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    Sınava Başla
-                  </Button>
+                  <>
+                    {hasActiveSubmission && (
+                      <Alert 
+                        severity="info" 
+                        className="mb-4 rounded-xl"
+                        sx={{
+                          backgroundColor: '#f0f9ff',
+                          border: '1px solid #0ea5e9',
+                          color: '#0c4a6e'
+                        }}
+                      >
+                        <Typography variant="body2" className="font-medium">
+                          Bu sınava daha önce başladınız. Kaldığınız yerden devam edebilirsiniz.
+                        </Typography>
+                      </Alert>
+                    )}
+                    
+                    {hasActiveSubmission ? (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        startIcon={<StartIcon />}
+                        onClick={() => navigate(`/take-exam/${exam.id}`, { 
+                          state: { 
+                            submissionId: activeSubmissionId,
+                            examName: exam.name,
+                            durationInMinutes: exam.durationInMinutes
+                          }
+                        })}
+                        sx={{
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          borderRadius: '16px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          py: 2,
+                          fontSize: '1rem',
+                          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                            boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
+                            transform: 'translateY(-2px)'
+                          },
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        Sınavı Devam Et
+                      </Button>
+                    ) : (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        startIcon={checkingSubmission ? <CircularProgress size={20} color="inherit" /> : <StartIcon />}
+                        onClick={handleStartExam}
+                        disabled={checkingSubmission}
+                        sx={{
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          borderRadius: '16px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          py: 2,
+                          fontSize: '1rem',
+                          boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                            boxShadow: '0 6px 20px rgba(139, 92, 246, 0.4)',
+                            transform: 'translateY(-2px)'
+                          },
+                          '&:disabled': {
+                            background: '#9ca3af',
+                            boxShadow: 'none',
+                            transform: 'none'
+                          },
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        {checkingSubmission ? 'Kontrol Ediliyor...' : 'Sınava Başla'}
+                      </Button>
+                    )}
+                  </>
                 )}
 
                 <Divider sx={{ my: 2 }} />
+
+                {/* Admin/Teacher Actions */}
+                {(user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_TEACHER') && (
+                  <>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<AssignmentIcon />}
+                      onClick={() => navigate(`/student-answers/${examId}`)}
+                      sx={{
+                        borderColor: '#8b5cf6',
+                        color: '#8b5cf6',
+                        borderRadius: '16px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        py: 2,
+                        fontSize: '1rem',
+                        '&:hover': {
+                          borderColor: '#7c3aed',
+                          color: '#7c3aed',
+                          backgroundColor: '#f8fafc'
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Öğrenci Cevapları
+                    </Button>
+                    
+                    <Divider sx={{ my: 2 }} />
+                  </>
+                )}
 
                 <Button
                   fullWidth

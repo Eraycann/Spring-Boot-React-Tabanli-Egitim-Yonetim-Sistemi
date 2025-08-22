@@ -69,6 +69,13 @@ const CourseExamsModal = ({ open, onClose, courseId, courseName }) => {
   useEffect(() => {
     if (open && courseId) {
       fetchExams();
+      
+      // Her 30 saniyede bir sınavları güncelle (süresi dolan sınavları pasifize etmek için)
+      const interval = setInterval(() => {
+        fetchExams();
+      }, 30000); // 30 saniye
+      
+      return () => clearInterval(interval);
     }
   }, [open, courseId]);
 
@@ -401,6 +408,9 @@ const CourseExamsModal = ({ open, onClose, courseId, courseName }) => {
                             />
                           </Box>
                         }
+                        secondaryTypographyProps={{
+                          component: 'div'
+                        }}
                       />
                       
                       {/* Exam Info Chips */}

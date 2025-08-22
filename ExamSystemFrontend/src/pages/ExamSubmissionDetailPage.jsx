@@ -33,6 +33,8 @@ const ExamSubmissionDetailPage = () => {
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [studentAnswers, setStudentAnswers] = useState([]);
+  const [answersLoading, setAnswersLoading] = useState(false);
 
   useEffect(() => {
     if (submissionId) {
@@ -53,10 +55,34 @@ const ExamSubmissionDetailPage = () => {
       
       const response = await apiService.get(`/exam-submissions/${submissionId}`);
       setSubmission(response);
+      
+      // Fetch student answers if submission is completed
+      if (response.submittedAt) {
+        await fetchStudentAnswers();
+      }
     } catch (err) {
       setError(err.message || 'Sınav girişi detayları yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStudentAnswers = async () => {
+    try {
+      setAnswersLoading(true);
+      
+      const params = new URLSearchParams({
+        page: '0',
+        size: '100',
+        sort: 'id,asc'
+      });
+      
+      const response = await apiService.get(`/student-answers/submission/${submissionId}?${params.toString()}`);
+      setStudentAnswers(Array.isArray(response.content) ? response.content : []);
+    } catch (err) {
+      console.error('Öğrenci cevapları yüklenirken hata:', err);
+    } finally {
+      setAnswersLoading(false);
     }
   };
 
@@ -362,6 +388,146 @@ const ExamSubmissionDetailPage = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Student Answers Section - Only show if submission is completed */}
+      {submission?.submittedAt && (
+        <Box className="mt-8">
+          <Card elevation={0} sx={{ 
+            borderRadius: '20px', 
+            border: '1px solid #e5e7eb',
+            backgroundColor: '#ffffff'
+          }}>
+            <CardContent sx={{ p: 5 }}>
+              <Box className="flex items-center gap-3 mb-6">
+                <Box className="bg-blue-100 w-12 h-12 rounded-xl flex items-center justify-center">
+                  <GradeIcon sx={{ fontSize: 28, color: '#3b82f6' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h5" className="font-semibold text-gray-900 mb-1">
+                    Öğrenci Cevapları
+                  </Typography>
+                  <Typography variant="body1" className="text-gray-600">
+                    Öğrencinin verdiği cevaplar ve doğruluk durumları
+                  </Typography>
+                </Box>
+              </Box>
+
+              {answersLoading ? (
+                <Box className="flex justify-center items-center h-32">
+                  <CircularProgress size={40} sx={{ color: '#6366f1' }} />
+                </Box>
+              ) : studentAnswers.length === 0 ? (
+                <Box className="text-center py-8">
+                  <Box className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <GradeIcon sx={{ fontSize: 32, color: '#6b7280' }} />
+                  </Box>
+                  <Typography variant="h6" className="text-gray-600 mb-2">
+                    Cevap bulunamadı
+                  </Typography>
+                  <Typography variant="body2" className="text-gray-500">
+                    Bu sınav girişi için henüz cevap kaydı bulunmuyor
+                  </Typography>
+                </Box>
+              ) : (
+                <Stack spacing={3}>
+                  {studentAnswers.map((answer, index) => (
+                    <Card key={answer.id} elevation={0} sx={{ 
+                      borderRadius: '16px',
+                      border: '1px solid #e5e7eb',
+                      backgroundColor: answer.correct ? '#f0fdf4' : '#fef2f2',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        borderColor: answer.correct ? '#22c55e' : '#ef4444',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}>
+                      <CardContent sx={{ p: 4 }}>
+                        <Box className="flex items-start justify-between">
+                          <Box className="flex items-start gap-4 flex-1">
+                            <Box className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                              answer.correct ? 'bg-green-100' : 'bg-red-100'
+                            }`}>
+                              <Typography variant="body2" className={`font-bold ${
+                                answer.correct ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {index + 1}
+                              </Typography>
+                            </Box>
+                            
+                            <Box className="flex-1">
+                              <Typography variant="h6" className="font-semibold text-gray-900 mb-3">
+                                {answer.questionText}
+                              </Typography>
+                              
+                              <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Box className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                  <Typography variant="body2" className="text-gray-600 font-medium mb-1">
+                                    Öğrencinin Cevabı:
+                                  </Typography>
+                                  <Typography variant="body1" className={`font-semibold ${
+                                    answer.correct ? 'text-green-600' : 'text-red-600'
+                                  }`}>
+                                    {answer.givenAnswer}
+                                  </Typography>
+                                </Box>
+                                
+                                <Box className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                  <Typography variant="body2" className="text-blue-600 font-medium mb-1">
+                                    Doğru Cevap:
+                                  </Typography>
+                                  <Typography variant="body1" className="font-semibold text-blue-800">
+                                    {answer.correctAnswer}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Box>
+                          
+                          <Box className="flex flex-col items-end gap-2">
+                            <Chip
+                              icon={answer.correct ? <CheckCircleIcon /> : null}
+                              label={answer.correct ? 'Doğru' : 'Yanlış'}
+                              size="small"
+                              sx={{
+                                backgroundColor: answer.correct ? '#dcfce7' : '#fef2f2',
+                                color: answer.correct ? '#166534' : '#dc2626',
+                                fontWeight: 600,
+                                fontSize: '0.75rem'
+                              }}
+                            />
+                            
+                            <Typography variant="body2" className="text-gray-600">
+                              Puan: {answer.score}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Stack>
+              )}
+
+              {/* Summary */}
+              {studentAnswers.length > 0 && (
+                <Box className="mt-6 p-4 bg-gray-50 rounded-xl">
+                  <Typography variant="body2" className="text-gray-600">
+                    Toplam <span className="font-semibold text-indigo-600">{studentAnswers.length}</span> soru cevaplandı
+                    {' • '}
+                    <span className="font-semibold text-green-600">
+                      {studentAnswers.filter(a => a.correct).length} doğru
+                    </span>
+                    {' • '}
+                    <span className="font-semibold text-red-600">
+                      {studentAnswers.filter(a => !a.correct).length} yanlış
+                    </span>
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Box>
+      )}
     </Container>
   );
 };

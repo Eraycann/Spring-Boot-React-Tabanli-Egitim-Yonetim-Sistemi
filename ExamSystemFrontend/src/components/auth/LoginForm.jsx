@@ -56,7 +56,6 @@ const LoginForm = () => {
 
     try {
       const response = await login(formData);
-      console.log('Login successful:', response);
       // Başarılı login sonrası ana sayfaya yönlendir
       navigate('/');
     } catch (err) {

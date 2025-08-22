@@ -63,6 +63,18 @@ const ExamSearchPage = () => {
     fetchCourses();
   }, []);
 
+  // Periyodik güncelleme için interval
+  useEffect(() => {
+    // Her 30 saniyede bir sınavları güncelle (süresi dolan sınavları pasifize etmek için)
+    const interval = setInterval(() => {
+      if (exams.length > 0) {
+        fetchExams();
+      }
+    }, 30000); // 30 saniye
+    
+    return () => clearInterval(interval);
+  }, [exams.length]);
+
   // Remove automatic search on filter changes
   // useEffect(() => {
   //   if (courses.length > 0) {
@@ -246,12 +258,39 @@ const ExamSearchPage = () => {
             {/* Filters */}
             <Box className="flex flex-wrap items-center gap-4">
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>Kurs Seçin</InputLabel>
+                <InputLabel 
+                  sx={{ 
+                    color: '#374151', 
+                    fontWeight: 600,
+                    backgroundColor: 'white',
+                    padding: '0 8px',
+                    '&.Mui-focused': {
+                      color: '#f59e0b',
+                      backgroundColor: 'white'
+                    }
+                  }}
+                >
+                  Kurs Seçin
+                </InputLabel>
                 <Select
                   value={selectedCourseId}
                   onChange={(e) => setSelectedCourseId(e.target.value)}
                   label="Kurs Seçin"
-                  sx={{ borderRadius: '12px' }}
+                  sx={{ 
+                    borderRadius: '12px',
+                    backgroundColor: 'white',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db',
+                      borderWidth: '2px'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#f59e0b'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#f59e0b',
+                      borderWidth: '2px'
+                    }
+                  }}
                 >
                   <MenuItem value="">Tüm Kurslar</MenuItem>
                   {courses.map((course) => (
@@ -263,12 +302,39 @@ const ExamSearchPage = () => {
               </FormControl>
 
               <FormControl sx={{ minWidth: 150 }}>
-                <InputLabel>Durum</InputLabel>
+                <InputLabel 
+                  sx={{ 
+                    color: '#374151', 
+                    fontWeight: 600,
+                    backgroundColor: 'white',
+                    padding: '0 8px',
+                    '&.Mui-focused': {
+                      color: '#f59e0b',
+                      backgroundColor: 'white'
+                    }
+                  }}
+                >
+                  Durum
+                </InputLabel>
                 <Select
                   value={activeFilter}
                   onChange={(e) => setActiveFilter(e.target.value)}
                   label="Durum"
-                  sx={{ borderRadius: '12px' }}
+                  sx={{ 
+                    borderRadius: '12px',
+                    backgroundColor: 'white',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db',
+                      borderWidth: '2px'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#f59e0b'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#f59e0b',
+                      borderWidth: '2px'
+                    }
+                  }}
                 >
                   <MenuItem value="">Tümü</MenuItem>
                   <MenuItem value="true">Aktif</MenuItem>
@@ -277,12 +343,39 @@ const ExamSearchPage = () => {
               </FormControl>
 
               <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Sıralama</InputLabel>
+                <InputLabel 
+                  sx={{ 
+                    color: '#374151', 
+                    fontWeight: 600,
+                    backgroundColor: 'white',
+                    padding: '0 8px',
+                    '&.Mui-focused': {
+                      color: '#f59e0b',
+                      backgroundColor: 'white'
+                    }
+                  }}
+                >
+                  Sıralama
+                </InputLabel>
                 <Select
                   value={`${sorting.field},${sorting.direction}`}
                   onChange={handleSortChange}
                   label="Sıralama"
-                  sx={{ borderRadius: '12px' }}
+                  sx={{ 
+                    borderRadius: '12px',
+                    backgroundColor: 'white',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db',
+                      borderWidth: '2px'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#f59e0b'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#f59e0b',
+                      borderWidth: '2px'
+                    }
+                  }}
                 >
                   <MenuItem value="id,desc">ID (Azalan)</MenuItem>
                   <MenuItem value="id,asc">ID (Artan)</MenuItem>

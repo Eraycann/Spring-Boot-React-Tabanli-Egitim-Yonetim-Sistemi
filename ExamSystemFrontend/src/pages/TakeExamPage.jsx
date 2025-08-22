@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
@@ -49,6 +49,7 @@ const TakeExamPage = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const submitButtonRef = useRef(null);
 
   // Get submission data from navigation state
   const submissionId = location.state?.submissionId;
@@ -480,19 +481,20 @@ const TakeExamPage = () => {
         </Box>
       </Box>
 
-      {/* Submit Confirmation Dialog */}
-      <Dialog
-        open={showSubmitDialog}
-        onClose={() => setShowSubmitDialog(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-          }
-        }}
-      >
+             {/* Submit Confirmation Dialog */}
+       <Dialog
+         open={showSubmitDialog}
+         onClose={() => setShowSubmitDialog(false)}
+         maxWidth="sm"
+         fullWidth
+         disableRestoreFocus
+         PaperProps={{
+           sx: {
+             borderRadius: '20px',
+             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+           }
+         }}
+       >
         <DialogTitle
           sx={{
             pb: 1,
@@ -510,12 +512,18 @@ const TakeExamPage = () => {
               Sınavı Bitir
             </Typography>
           </Box>
-          <IconButton
-            onClick={() => setShowSubmitDialog(false)}
-            sx={{ color: 'white' }}
-          >
-            <CloseIcon />
-          </IconButton>
+                     <IconButton
+             onClick={() => {
+               setShowSubmitDialog(false);
+               // Focus'u modal dışına taşı
+               setTimeout(() => {
+                 submitButtonRef.current?.focus();
+               }, 100);
+             }}
+             sx={{ color: 'white' }}
+           >
+             <CloseIcon />
+           </IconButton>
         </DialogTitle>
 
         <DialogContent sx={{ pt: 3 }}>

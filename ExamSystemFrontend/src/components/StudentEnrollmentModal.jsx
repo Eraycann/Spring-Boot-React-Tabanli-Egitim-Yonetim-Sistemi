@@ -286,14 +286,30 @@ const StudentEnrollmentModal = ({ open, onClose, courseId, courseName, onSuccess
               />
               
               <FormControl fullWidth>
-                <InputLabel>Sınıf Seviyesi</InputLabel>
+                <InputLabel 
+                  sx={{ 
+                    color: '#374151', 
+                    fontWeight: 600,
+                    backgroundColor: 'white',
+                    padding: '0 8px',
+                    '&.Mui-focused': {
+                      color: '#059669',
+                      backgroundColor: 'white'
+                    }
+                  }}
+                >
+                  Sınıf Seviyesi
+                </InputLabel>
                 <Select
                   value={searchParams.gradeLevel}
                   onChange={(e) => setSearchParams(prev => ({ ...prev, gradeLevel: e.target.value }))}
                   label="Sınıf Seviyesi"
                   sx={{
                     borderRadius: '12px',
+                    backgroundColor: 'white',
                     '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db',
+                      borderWidth: '2px',
                       '&:hover': {
                         borderColor: '#059669'
                       }
