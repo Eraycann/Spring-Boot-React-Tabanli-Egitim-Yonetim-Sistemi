@@ -110,7 +110,15 @@ const ExamSubmissionsPage = () => {
       });
     } catch (err) {
       console.error('Sınav girişleri yüklenirken hata:', err);
-      setError(err.message || 'Sınav girişleri yüklenirken bir hata oluştu');
+      
+      // Yetkilendirme hatası kontrolü
+      if (err.message && err.message.includes('yetkiniz bulunmamaktadır')) {
+        setError('Bu sayfaya erişim yetkiniz bulunmamaktadır.');
+      } else if (err.message && err.message.includes('Oturum süresi doldu')) {
+        setError('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+      } else {
+        setError(err.message || 'Sınav girişleri yüklenirken bir hata oluştu');
+      }
     } finally {
       setLoading(false);
     }

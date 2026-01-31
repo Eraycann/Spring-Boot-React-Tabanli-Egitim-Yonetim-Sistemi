@@ -90,11 +90,16 @@ const makeRequest = async (url, options, retryCount = 0) => {
       }
     }
     
-    // 403 hatası alındıysa kullanıcıyı login sayfasına yönlendir
+    // 403 hatası için özel kontrol - sadece refresh token endpoint'inde login'e yönlendir
     if (response.status === 403) {
-      localStorage.clear();
-      window.location.href = '/login';
-      throw new Error('Yetkisiz erişim. Lütfen tekrar giriş yapın.');
+      // Eğer bu bir refresh token isteği ise login'e yönlendir
+      if (url.includes('/auth/refresh-token')) {
+        localStorage.clear();
+        window.location.href = '/login';
+        throw new Error('Yetkisiz erişim. Lütfen tekrar giriş yapın.');
+      }
+      // Diğer 403 hataları için sadece hata fırlat, yönlendirme yapma
+      throw new Error('Bu işlem için yetkiniz bulunmamaktadır.');
     }
     
     return response;

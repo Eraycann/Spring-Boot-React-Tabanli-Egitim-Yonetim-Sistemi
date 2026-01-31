@@ -258,7 +258,7 @@ const ExamSubmissionDetailPage = () => {
       {/* Content Grid */}
       <Grid container spacing={4}>
         {/* Submission Details */}
-        <Grid item xs={12} lg={8}>
+        <Grid columns={{ xs: 12, lg: 8 }}>
           <Stack spacing={4}>
             {/* Submission Info Card */}
             <Card elevation={0} sx={{ 
@@ -349,7 +349,7 @@ const ExamSubmissionDetailPage = () => {
         </Grid>
 
         {/* Actions Sidebar */}
-        <Grid item xs={12} lg={4}>
+        <Grid columns={{ xs: 12, lg: 4 }}>
           <Card elevation={0} sx={{ 
             borderRadius: '20px', 
             border: '1px solid #e5e7eb',

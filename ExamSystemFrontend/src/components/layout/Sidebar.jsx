@@ -26,6 +26,7 @@ const Sidebar = () => {
           { text: 'Sınav Ara', icon: <QuizIcon />, path: '/exam-search' },
           { text: 'Sınav Girişleri', icon: <AssignmentTurnedInIcon />, path: '/exam-submissions' },
           { text: 'Öğretmen Yönetimi', icon: <PeopleIcon />, path: '/teachers' },
+          { text: 'Öğretmen Ekle', icon: <AddIcon />, path: '/add-teacher' },
           { text: 'Öğrenci Yönetimi', icon: <SchoolIcon />, path: '/students' },
           { text: 'Veli Yönetimi', icon: <PersonIcon />, path: '/parents' }
         ];
